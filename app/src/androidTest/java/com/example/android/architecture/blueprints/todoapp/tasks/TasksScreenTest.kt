@@ -16,7 +16,6 @@
 
 package com.example.android.architecture.blueprints.todoapp.tasks
 
-import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -24,7 +23,6 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotDisplayed
-import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -35,9 +33,6 @@ import androidx.compose.ui.test.performTextInput
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.testing.TestNavHostController
-import androidx.test.core.app.ApplicationProvider
-import androidx.test.espresso.IdlingRegistry
-import androidx.test.espresso.idling.CountingIdlingResource
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import com.example.android.architecture.blueprints.todoapp.HiltTestActivity
@@ -50,12 +45,10 @@ import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.junit.runner.manipulation.Ordering
 import javax.inject.Inject
 
 /**
@@ -174,7 +167,7 @@ class TasksScreenTest {
         composeTestRule.onNodeWithContentDescription(getString(R.string.menu_back))
             .assertIsDisplayed()
             .performClick()
-        composeTestRule.onNodeWithTag("Todo")
+        composeTestRule.onNodeWithTag(getString(R.string.app_name))
             .assertIsDisplayed()
         snackBar
             .assertIsNotDisplayed()
@@ -319,7 +312,7 @@ class TasksScreenTest {
 
         openFilterAndSelectOption(R.string.nav_active)
         // Verify the "You have no active tasks!" text is shown
-        composeTestRule.onNodeWithText("You have no active tasks!").assertIsDisplayed()
+        composeTestRule.onNodeWithText(getString(R.string.no_tasks_active)).assertIsDisplayed()
     }
 
 

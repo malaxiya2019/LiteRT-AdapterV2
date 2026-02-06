@@ -72,6 +72,6 @@ object DatabaseModule {
     @Provides
     fun provideAppMessageQueue(@ApplicationContext context: Context): AppMessageQueue {
         return AppMessageQueueImpl(context
-            .getSharedPreferences("message_queue", Context.MODE_PRIVATE))
+            .getSharedPreferences(AppMessageQueueImpl.MESSAGE_QUEUE, Context.MODE_PRIVATE))
     }
 }

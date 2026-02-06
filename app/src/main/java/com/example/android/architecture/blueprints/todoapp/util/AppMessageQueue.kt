@@ -14,6 +14,7 @@ class AppMessageQueueImpl(private val prefs: SharedPreferences) : AppMessageQueu
 
     companion object{
         const val MESSAGE_KEY = "AppMessageQueue.message_key"
+        const val MESSAGE_QUEUE = "message_queue"
     }
 
     override fun produce(message: Int) {

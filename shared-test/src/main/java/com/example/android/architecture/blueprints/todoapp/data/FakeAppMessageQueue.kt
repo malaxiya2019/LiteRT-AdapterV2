@@ -7,11 +7,15 @@ class FakeAppMessageQueue : AppMessageQueue {
     private val fakePrefs = mutableMapOf<String, Int>()
 
     override fun produce(message: Int) {
-        fakePrefs["message"] = message
+        fakePrefs[MESSAGE_KEY] = message
     }
 
     override fun consume(): Int {
-        return fakePrefs.remove("message") ?: 0
+        return fakePrefs.remove(MESSAGE_KEY) ?: 0
+    }
+
+    private companion object {
+        private const val MESSAGE_KEY = "message"
     }
 
 }
