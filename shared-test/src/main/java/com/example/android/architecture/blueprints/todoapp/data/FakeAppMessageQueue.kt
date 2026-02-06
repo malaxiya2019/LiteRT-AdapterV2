@@ -11,6 +11,6 @@ class FakeAppMessageQueue : AppMessageQueue {
     }
 
     override fun getPendingMessageOnce(): Int {
-        return fakePrefs["message"] ?: 0
+        return fakePrefs.remove("message") ?: 0
     }
 }

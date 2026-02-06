@@ -17,6 +17,7 @@
 package com.example.android.architecture.blueprints.todoapp
 
 import android.app.Application
+import android.content.Context
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
 import timber.log.Timber.DebugTree
@@ -32,4 +33,6 @@ class TodoApplication : Application() {
         super.onCreate()
         if (BuildConfig.DEBUG) Timber.plant(DebugTree())
     }
+
+
 }

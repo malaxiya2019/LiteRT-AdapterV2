@@ -47,6 +47,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -88,7 +89,7 @@ fun TasksScreen(
             )
         },
         floatingActionButton = {
-            SmallFloatingActionButton(onClick = onAddTask) {
+            SmallFloatingActionButton(onClick = onAddTask, modifier = Modifier.testTag(stringResource(id = R.string.add_task))) {
                 Icon(Icons.Filled.Add, stringResource(id = R.string.add_task))
             }
         }

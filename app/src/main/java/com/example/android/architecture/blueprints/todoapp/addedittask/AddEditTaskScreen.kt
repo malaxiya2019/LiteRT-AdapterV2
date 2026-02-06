@@ -48,6 +48,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -74,7 +75,8 @@ fun AddEditTaskScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = { AddEditTaskTopAppBar(topBarTitle, onBack) },
         floatingActionButton = {
-            SmallFloatingActionButton(onClick = viewModel::saveTask) {
+            SmallFloatingActionButton(onClick = viewModel::saveTask,
+                modifier = Modifier.testTag(stringResource(id = R.string.cd_save_task))) {
                 Icon(Icons.Filled.Done, stringResource(id = R.string.cd_save_task))
             }
         }
@@ -144,7 +146,8 @@ private fun AddEditTaskContent(
             )
             OutlinedTextField(
                 value = title,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .testTag(stringResource(id = R.string.title_hint)).fillMaxWidth(),
                 onValueChange = onTitleChanged,
                 placeholder = {
                     Text(
@@ -163,6 +166,7 @@ private fun AddEditTaskContent(
                 placeholder = { Text(stringResource(id = R.string.description_hint)) },
                 modifier = Modifier
                     .height(350.dp)
+                    .testTag(stringResource(id = R.string.description_hint))
                     .fillMaxWidth(),
                 colors = textFieldColors
             )

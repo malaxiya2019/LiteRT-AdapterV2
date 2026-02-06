@@ -21,10 +21,11 @@ class AppMessageQueueImpl(private val prefs: SharedPreferences) : AppMessageQueu
     }
 
     override fun getPendingMessageOnce(): Int {
-        return prefs.getInt(MESSAGE_KEY, 0)
-            .also{
-                prefs.edit(commit = true){ remove(MESSAGE_KEY)}
-            }
+        val pendingMsg = prefs.getInt(MESSAGE_KEY, 0)
+        prefs.edit(commit = true) {
+            remove(MESSAGE_KEY)
+        }
+        return pendingMsg
     }
 
 
