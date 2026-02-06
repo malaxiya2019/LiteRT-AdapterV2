@@ -16,7 +16,6 @@
 
 package com.example.android.architecture.blueprints.todoapp
 
-import androidx.compose.ui.window.Popup
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import com.example.android.architecture.blueprints.todoapp.TodoDestinationsArgs.TASK_ID_ARG
@@ -26,8 +25,6 @@ import com.example.android.architecture.blueprints.todoapp.TodoScreens.ADD_EDIT_
 import com.example.android.architecture.blueprints.todoapp.TodoScreens.STATISTICS_SCREEN
 import com.example.android.architecture.blueprints.todoapp.TodoScreens.TASKS_SCREEN
 import com.example.android.architecture.blueprints.todoapp.TodoScreens.TASK_DETAIL_SCREEN
-import com.example.android.architecture.blueprints.todoapp.util.AppMessageQueue
-import javax.inject.Inject
 
 /**
  * Screens used in [TodoDestinations]
@@ -79,7 +76,7 @@ class TodoNavigationActions(private val navController: NavHostController) {
         }
     }
 
-        fun navigateToStatistics() {
+    fun navigateToStatistics() {
         navController.navigate(TodoDestinations.STATISTICS_ROUTE) {
             // Pop up to the start destination of the graph to
             // avoid building up a large stack of destinations

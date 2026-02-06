@@ -112,7 +112,7 @@ fun TasksScreen(
             val snackbarText = stringResource(message)
             LaunchedEffect(snackbarHostState, viewModel, message, snackbarText) {
                 snackbarHostState.showSnackbar(snackbarText)
-              //  viewModel.snackbarMessageShown()
+                viewModel.snackbarMessageShown()
             }
         }
 

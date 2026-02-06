@@ -16,6 +16,7 @@
 
 package com.example.android.architecture.blueprints.todoapp.tasks
 
+import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -54,6 +55,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.junit.runner.manipulation.Ordering
 import javax.inject.Inject
 
 /**
@@ -82,13 +84,10 @@ class TasksScreenTest {
 
     private lateinit var navController: NavHostController
 
-    val idlingResource = CountingIdlingResource("MyNetworkCalls")
-
 
     @Before
     fun init() {
         hiltRule.inject()
-        IdlingRegistry.getInstance().register(idlingResource)
     }
 
     @Test
@@ -146,8 +145,8 @@ class TasksScreenTest {
         setContent()
         composeTestRule.waitForIdle()
 
-        val newTaskBtn = composeTestRule.onNodeWithTag("New Task")
-        val snackBar = composeTestRule.onNodeWithText("Task added")
+        val newTaskBtn = composeTestRule.onNodeWithTag(getString(R.string.add_task))
+        val snackBar = composeTestRule.onNodeWithText(getString(R.string.successfully_added_task_message))
 
         newTaskBtn.assertIsDisplayed()
             .assertIsEnabled()
@@ -155,16 +154,16 @@ class TasksScreenTest {
 
         composeTestRule.waitForIdle()
 
-        composeTestRule.onNodeWithTag("Title").performTextInput("TITLE1")
-        composeTestRule.onNodeWithTag("Enter your task here.").performTextInput("DESCRIPTION1")
+        composeTestRule.onNodeWithTag(getString(R.string.title_hint)).performTextInput("TITLE1")
+        composeTestRule.onNodeWithTag(getString(R.string.description_hint)).performTextInput("DESCRIPTION1")
         composeTestRule
-            .onNodeWithContentDescription("Save task")
+            .onNodeWithContentDescription(getString(R.string.cd_save_task))
             .performClick()
         composeTestRule.awaitIdle()
 
         snackBar.assertIsDisplayed()
 
-        composeTestRule.onNodeWithTag("New Task")
+        composeTestRule.onNodeWithTag(getString(R.string.add_task))
             .assertIsDisplayed()
         composeTestRule.awaitIdle()
 
@@ -172,7 +171,7 @@ class TasksScreenTest {
         // and assert that the snackbar is not displayed
         newTaskBtn.assertIsDisplayed().performClick()
         composeTestRule.waitForIdle()
-        composeTestRule.onNodeWithContentDescription("Back")
+        composeTestRule.onNodeWithContentDescription(getString(R.string.menu_back))
             .assertIsDisplayed()
             .performClick()
         composeTestRule.onNodeWithTag("Todo")
@@ -299,8 +298,10 @@ class TasksScreenTest {
 
         openFilterAndSelectOption(R.string.nav_all)
 
+        // no_tasks_all
+
         // Verify the "You have no tasks!" text is shown
-        composeTestRule.onNodeWithText("You have no tasks!").assertIsDisplayed()
+        composeTestRule.onNodeWithText(getString(R.string.no_tasks_all)).assertIsDisplayed()
     }
 
     @Test
@@ -325,7 +326,7 @@ class TasksScreenTest {
 
     private fun setContent() {
 
-        navController = TestNavHostController(ApplicationProvider.getApplicationContext())
+        navController = TestNavHostController(activity)
 
         todoNavActions = TodoNavigationActions(navController)
 
@@ -336,7 +337,7 @@ class TasksScreenTest {
                 navController.navigatorProvider.addNavigator(ComposeNavigator())
             }
 
-            TestNavHost(navController, repository = repository)
+            TestNavHost(navController)
         }
 
     }
@@ -350,15 +351,12 @@ class TasksScreenTest {
     }
 
 
-    @After
-    fun tearDown(){
-        IdlingRegistry.getInstance().unregister(idlingResource)
-    }
+    fun getString(@StringRes stringResId: Int) = activity.getString(stringResId)
 }
 
 
 @Composable
-fun TestNavHost(navController: NavHostController, repository: TaskRepository){
+fun TestNavHost(navController: NavHostController){
     TodoTheme {
         Surface {
             TodoNavGraph(navController = navController)
