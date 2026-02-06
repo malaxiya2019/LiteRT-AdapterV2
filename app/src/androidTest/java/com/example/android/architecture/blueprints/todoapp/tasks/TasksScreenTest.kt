@@ -199,7 +199,7 @@ class TasksScreenTest {
         composeTestRule.onNodeWithContentDescription("Back")
             .assertIsDisplayed()
             .performClick()
-        composeTestRule.onAllNodesWithText("Todo")[0]
+        composeTestRule.onNodeWithTag("Todo")
             .assertIsDisplayed()
         snackBar
             .assertIsNotDisplayed()

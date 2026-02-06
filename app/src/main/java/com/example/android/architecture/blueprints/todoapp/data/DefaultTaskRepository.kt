@@ -141,11 +141,11 @@ class DefaultTaskRepository @Inject constructor(
     }
 
     override fun addPendingMessage(message: Int) {
-        appMessageQueue.setHasPendingMessage(message = message)
+        appMessageQueue.produce(message = message)
     }
 
     override fun readOncePendingMessage(): Int {
-        return appMessageQueue.getPendingMessageOnce()
+        return appMessageQueue.consume()
     }
 
     /**

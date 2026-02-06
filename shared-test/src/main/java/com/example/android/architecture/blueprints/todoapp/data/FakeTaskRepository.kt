@@ -133,10 +133,10 @@ class FakeTaskRepository : TaskRepository {
     }
 
     override fun addPendingMessage(message: Int) {
-        msgQueue.setHasPendingMessage(message)
+        msgQueue.produce(message)
     }
 
-    override fun readOncePendingMessage(): Int = msgQueue.getPendingMessageOnce()
+    override fun readOncePendingMessage(): Int = msgQueue.consume()
 
     override suspend fun deleteAllTasks() {
         _savedTasks.update {

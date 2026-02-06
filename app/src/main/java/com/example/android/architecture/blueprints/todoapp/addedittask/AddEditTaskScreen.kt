@@ -95,7 +95,7 @@ fun AddEditTaskScreen(
         // Check if the task is saved and call onTaskUpdate event
         LaunchedEffect(uiState.isTaskSaved) {
             if (uiState.isTaskSaved) {
-                viewModel.setPendingMessage(if (taskId != null)
+                viewModel.setPendingMessage(if (taskId == null)
                     ADD_EDIT_RESULT_OK else EDIT_RESULT_OK)
                 onTaskUpdate()
             }

@@ -5,8 +5,8 @@ import androidx.core.content.edit
 
 
 interface AppMessageQueue {
-    fun setHasPendingMessage(message: Int)
-    fun getPendingMessageOnce(): Int
+    fun produce(message: Int)
+    fun consume(): Int
 }
 
 class AppMessageQueueImpl(private val prefs: SharedPreferences) : AppMessageQueue{
@@ -16,13 +16,13 @@ class AppMessageQueueImpl(private val prefs: SharedPreferences) : AppMessageQueu
         const val MESSAGE_KEY = "AppMessageQueue.message_key"
     }
 
-    override fun setHasPendingMessage(message: Int) {
+    override fun produce(message: Int) {
         prefs.edit(commit = true){ putInt(MESSAGE_KEY, message) }
     }
 
-    override fun getPendingMessageOnce(): Int {
+    override fun consume(): Int {
         val pendingMsg = prefs.getInt(MESSAGE_KEY, 0)
-        prefs.edit(commit = true) {
+        prefs.edit(commit = false) {
             remove(MESSAGE_KEY)
         }
         return pendingMsg

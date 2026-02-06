@@ -90,7 +90,7 @@ fun TodoNavGraph(
                 topBarTitle = entry.arguments?.getInt(TITLE_ARG)!!,
                 taskId = taskId,
                 onTaskUpdate = {
-                    navActions.navigateToTasksV2()
+                    navActions.navigateToTasks()
                 },
                 onBack = { navController.popBackStack() }
             )

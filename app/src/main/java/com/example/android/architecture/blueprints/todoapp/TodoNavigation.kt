@@ -61,22 +61,6 @@ object TodoDestinations {
  */
 class TodoNavigationActions(private val navController: NavHostController) {
 
-    fun navigateToTasks(userMessage: Int = 0) {
-        val navigatesFromDrawer = userMessage == 0
-        navController.navigate(
-            TASKS_SCREEN.let {
-                if (userMessage != 0) "$it?$USER_MESSAGE_ARG=$userMessage" else it
-            }
-        ) {
-            popUpTo(navController.graph.findStartDestination().id) {
-                inclusive = !navigatesFromDrawer
-                saveState = navigatesFromDrawer
-            }
-            launchSingleTop = true
-            restoreState = navigatesFromDrawer
-        }
-    }
-
     fun navigateToTasks() {
         navController.navigate(
             TASKS_SCREEN
@@ -90,18 +74,6 @@ class TodoNavigationActions(private val navController: NavHostController) {
         }
     }
 
-    fun navigateToTasksV2() {
-        navController.navigate(
-            TASKS_SCREEN
-        ){
-            popUpTo(navController.graph.findStartDestination().id) {
-                inclusive = true
-                saveState = false
-            }
-            launchSingleTop = true
-            restoreState = false
-        }
-    }
 
 
 

@@ -6,11 +6,11 @@ class FakeAppMessageQueue : AppMessageQueue {
 
     private val fakePrefs = mutableMapOf<String, Int>()
 
-    override fun setHasPendingMessage(message: Int) {
+    override fun produce(message: Int) {
         fakePrefs["message"] = message
     }
 
-    override fun getPendingMessageOnce(): Int {
+    override fun consume(): Int {
         return fakePrefs.remove("message") ?: 0
     }
 }
