@@ -49,8 +49,6 @@ class DefaultTaskRepository @Inject constructor(
 ) : TaskRepository {
 
     override suspend fun createTask(title: String, description: String): String {
-        // ID creation might be a complex operation so it's executed using the supplied
-        // coroutine dispatcher
         val taskId = withContext(dispatcher) {
             UUID.randomUUID().toString()
         }
@@ -59,8 +57,13 @@ class DefaultTaskRepository @Inject constructor(
             description = description,
             id = taskId,
         )
-        localDataSource.upsert(task.toLocal())
-        saveTasksToNetwork()
+        try {
+            localDataSource.upsert(task.toLocal())
+            saveTasksToNetwork()
+        } catch (e: Exception) {
+            // In a real app you'd handle the exception e.g. by exposing a `taskStatus` flow
+            // to an app level UI state holder which could then display a Toast message.
+        }
         return taskId
     }
 
@@ -70,16 +73,25 @@ class DefaultTaskRepository @Inject constructor(
             description = description
         ) ?: throw Exception("Task (id $taskId) not found")
 
-        localDataSource.upsert(task.toLocal())
-        saveTasksToNetwork()
+        try {
+            localDataSource.upsert(task.toLocal())
+            saveTasksToNetwork()
+        } catch (e: Exception) {
+            // In a real app you'd handle the exception e.g. by exposing a `taskStatus` flow
+            // to an app level UI state holder which could then display a Toast message.
+        }
     }
 
     override suspend fun getTasks(forceUpdate: Boolean): List<Task> {
         if (forceUpdate) {
             refresh()
         }
-        return withContext(dispatcher) {
-            localDataSource.getAll().toExternal()
+        return try {
+            withContext(dispatcher) {
+                localDataSource.getAll().toExternal()
+            }
+        } catch (e: Exception) {
+            emptyList()
         }
     }
 
@@ -92,7 +104,12 @@ class DefaultTaskRepository @Inject constructor(
     }
 
     override suspend fun refreshTask(taskId: String) {
-        refresh()
+        try {
+            refresh()
+        } catch (e: Exception) {
+            // In a real app you'd handle the exception e.g. by exposing a `taskStatus` flow
+            // to an app level UI state holder which could then display a Toast message.
+        }
     }
 
     override fun getTaskStream(taskId: String): Flow<Task?> {
@@ -109,32 +126,61 @@ class DefaultTaskRepository @Inject constructor(
         if (forceUpdate) {
             refresh()
         }
-        return localDataSource.getById(taskId)?.toExternal()
+        return try {
+            localDataSource.getById(taskId)?.toExternal()
+        } catch (e: Exception) {
+            null
+        }
     }
 
     override suspend fun completeTask(taskId: String) {
-        localDataSource.updateCompleted(taskId = taskId, completed = true)
-        saveTasksToNetwork()
+        try {
+            localDataSource.updateCompleted(taskId = taskId, completed = true)
+            saveTasksToNetwork()
+        } catch (e: Exception) {
+            // In a real app you'd handle the exception e.g. by exposing a `taskStatus` flow
+            // to an app level UI state holder which could then display a Toast message.
+        }
     }
 
     override suspend fun activateTask(taskId: String) {
-        localDataSource.updateCompleted(taskId = taskId, completed = false)
-        saveTasksToNetwork()
+        try {
+            localDataSource.updateCompleted(taskId = taskId, completed = false)
+            saveTasksToNetwork()
+        } catch (e: Exception) {
+            // In a real app you'd handle the exception e.g. by exposing a `taskStatus` flow
+            // to an app level UI state holder which could then display a Toast message.
+        }
     }
 
     override suspend fun clearCompletedTasks() {
-        localDataSource.deleteCompleted()
-        saveTasksToNetwork()
+        try {
+            localDataSource.deleteCompleted()
+            saveTasksToNetwork()
+        } catch (e: Exception) {
+            // In a real app you'd handle the exception e.g. by exposing a `taskStatus` flow
+            // to an app level UI state holder which could then display a Toast message.
+        }
     }
 
     override suspend fun deleteAllTasks() {
-        localDataSource.deleteAll()
-        saveTasksToNetwork()
+        try {
+            localDataSource.deleteAll()
+            saveTasksToNetwork()
+        } catch (e: Exception) {
+            // In a real app you'd handle the exception e.g. by exposing a `taskStatus` flow
+            // to an app level UI state holder which could then display a Toast message.
+        }
     }
 
     override suspend fun deleteTask(taskId: String) {
-        localDataSource.deleteById(taskId)
-        saveTasksToNetwork()
+        try {
+            localDataSource.deleteById(taskId)
+            saveTasksToNetwork()
+        } catch (e: Exception) {
+            // In a real app you'd handle the exception e.g. by exposing a `taskStatus` flow
+            // to an app level UI state holder which could then display a Toast message.
+        }
     }
 
     /**
