@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,12 @@ class StatisticsUtilsTest {
     @Test
     fun getActiveAndCompletedStats_noCompleted() {
         val tasks = listOf(
-            Task("title", "desc", isCompleted = false)
+            Task(
+                id = "id",
+                title = "title",
+                description = "desc",
+                isCompleted = false,
+            )
         )
         // When the list of tasks is computed with an active task
         val result = getActiveAndCompletedStats(tasks)
@@ -42,7 +47,12 @@ class StatisticsUtilsTest {
     @Test
     fun getActiveAndCompletedStats_noActive() {
         val tasks = listOf(
-            Task("title", "desc", isCompleted = true)
+            Task(
+                id = "id",
+                title = "title",
+                description = "desc",
+                isCompleted = true,
+            )
         )
         // When the list of tasks is computed with a completed task
         val result = getActiveAndCompletedStats(tasks)
@@ -56,11 +66,11 @@ class StatisticsUtilsTest {
     fun getActiveAndCompletedStats_both() {
         // Given 3 completed tasks and 2 active tasks
         val tasks = listOf(
-            Task("title", "desc", isCompleted = true),
-            Task("title", "desc", isCompleted = true),
-            Task("title", "desc", isCompleted = true),
-            Task("title", "desc", isCompleted = false),
-            Task("title", "desc", isCompleted = false)
+            Task(id = "1", title = "title", description = "desc", isCompleted = true),
+            Task(id = "2", title = "title", description = "desc", isCompleted = true),
+            Task(id = "3", title = "title", description = "desc", isCompleted = true),
+            Task(id = "4", title = "title", description = "desc", isCompleted = false),
+            Task(id = "5", title = "title", description = "desc", isCompleted = false),
         )
         // When the list of tasks is computed
         val result = getActiveAndCompletedStats(tasks)
@@ -68,16 +78,6 @@ class StatisticsUtilsTest {
         // Then the result is 40-60
         assertThat(result.activeTasksPercent, `is`(40f))
         assertThat(result.completedTasksPercent, `is`(60f))
-    }
-
-    @Test
-    fun getActiveAndCompletedStats_error() {
-        // When there's an error loading stats
-        val result = getActiveAndCompletedStats(null)
-
-        // Both active and completed tasks are 0
-        assertThat(result.activeTasksPercent, `is`(0f))
-        assertThat(result.completedTasksPercent, `is`(0f))
     }
 
     @Test

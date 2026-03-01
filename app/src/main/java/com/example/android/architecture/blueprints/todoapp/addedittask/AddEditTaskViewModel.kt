@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,14 +21,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.android.architecture.blueprints.todoapp.R
 import com.example.android.architecture.blueprints.todoapp.TodoDestinationsArgs
-import com.example.android.architecture.blueprints.todoapp.data.Result.Success
-import com.example.android.architecture.blueprints.todoapp.data.Task
-import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository
+import com.example.android.architecture.blueprints.todoapp.data.TaskRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * UiState for the Add/Edit screen
@@ -45,8 +45,9 @@ data class AddEditTaskUiState(
 /**
  * ViewModel for the Add/Edit screen.
  */
-class AddEditTaskViewModel(
-    private val tasksRepository: TasksRepository,
+@HiltViewModel
+class AddEditTaskViewModel @Inject constructor(
+    private val taskRepository: TaskRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -99,8 +100,7 @@ class AddEditTaskViewModel(
     }
 
     private fun createNewTask() = viewModelScope.launch {
-        val newTask = Task(uiState.value.title, uiState.value.description)
-        tasksRepository.saveTask(newTask)
+        taskRepository.createTask(uiState.value.title, uiState.value.description)
         _uiState.update {
             it.copy(isTaskSaved = true)
         }
@@ -111,13 +111,11 @@ class AddEditTaskViewModel(
             throw RuntimeException("updateTask() was called but task is new.")
         }
         viewModelScope.launch {
-            val updatedTask = Task(
+            taskRepository.updateTask(
+                taskId,
                 title = uiState.value.title,
                 description = uiState.value.description,
-                isCompleted = uiState.value.isTaskCompleted,
-                id = taskId
             )
-            tasksRepository.saveTask(updatedTask)
             _uiState.update {
                 it.copy(isTaskSaved = true)
             }
@@ -129,9 +127,8 @@ class AddEditTaskViewModel(
             it.copy(isLoading = true)
         }
         viewModelScope.launch {
-            tasksRepository.getTask(taskId).let { result ->
-                if (result is Success) {
-                    val task = result.data
+            taskRepository.getTask(taskId).let { task ->
+                if (task != null) {
                     _uiState.update {
                         it.copy(
                             title = task.title,

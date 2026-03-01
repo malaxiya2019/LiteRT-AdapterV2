@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.example.android.architecture.blueprints.todoapp.tasks
 
 import androidx.lifecycle.SavedStateHandle
@@ -22,23 +23,23 @@ import com.example.android.architecture.blueprints.todoapp.ADD_EDIT_RESULT_OK
 import com.example.android.architecture.blueprints.todoapp.DELETE_RESULT_OK
 import com.example.android.architecture.blueprints.todoapp.EDIT_RESULT_OK
 import com.example.android.architecture.blueprints.todoapp.R
-import com.example.android.architecture.blueprints.todoapp.data.Result
-import com.example.android.architecture.blueprints.todoapp.data.Result.Success
 import com.example.android.architecture.blueprints.todoapp.data.Task
-import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository
+import com.example.android.architecture.blueprints.todoapp.data.TaskRepository
 import com.example.android.architecture.blueprints.todoapp.tasks.TasksFilterType.ACTIVE_TASKS
 import com.example.android.architecture.blueprints.todoapp.tasks.TasksFilterType.ALL_TASKS
 import com.example.android.architecture.blueprints.todoapp.tasks.TasksFilterType.COMPLETED_TASKS
 import com.example.android.architecture.blueprints.todoapp.util.Async
 import com.example.android.architecture.blueprints.todoapp.util.WhileUiSubscribed
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * UiState for the task list screen.
@@ -53,8 +54,9 @@ data class TasksUiState(
 /**
  * ViewModel for the task list screen.
  */
-class TasksViewModel(
-    private val tasksRepository: TasksRepository,
+@HiltViewModel
+class TasksViewModel @Inject constructor(
+    private val taskRepository: TaskRepository,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -65,11 +67,11 @@ class TasksViewModel(
     private val _userMessage: MutableStateFlow<Int?> = MutableStateFlow(null)
     private val _isLoading = MutableStateFlow(false)
     private val _filteredTasksAsync =
-        combine(tasksRepository.getTasksStream(), _savedFilterType) { tasks, type ->
+        combine(taskRepository.getTasksStream(), _savedFilterType) { tasks, type ->
             filterTasks(tasks, type)
         }
             .map { Async.Success(it) }
-            .onStart<Async<List<Task>>> { emit(Async.Loading) }
+            .catch<Async<List<Task>>> { emit(Async.Error(R.string.loading_tasks_error)) }
 
     val uiState: StateFlow<TasksUiState> = combine(
         _filterUiInfo, _isLoading, _userMessage, _filteredTasksAsync
@@ -77,6 +79,9 @@ class TasksViewModel(
         when (tasksAsync) {
             Async.Loading -> {
                 TasksUiState(isLoading = true)
+            }
+            is Async.Error -> {
+                TasksUiState(userMessage = tasksAsync.errorMessage)
             }
             is Async.Success -> {
                 TasksUiState(
@@ -100,7 +105,7 @@ class TasksViewModel(
 
     fun clearCompletedTasks() {
         viewModelScope.launch {
-            tasksRepository.clearCompletedTasks()
+            taskRepository.clearCompletedTasks()
             showSnackbarMessage(R.string.completed_tasks_cleared)
             refresh()
         }
@@ -108,10 +113,10 @@ class TasksViewModel(
 
     fun completeTask(task: Task, completed: Boolean) = viewModelScope.launch {
         if (completed) {
-            tasksRepository.completeTask(task)
+            taskRepository.completeTask(task.id)
             showSnackbarMessage(R.string.task_marked_complete)
         } else {
-            tasksRepository.activateTask(task)
+            taskRepository.activateTask(task.id)
             showSnackbarMessage(R.string.task_marked_active)
         }
     }
@@ -135,22 +140,12 @@ class TasksViewModel(
     fun refresh() {
         _isLoading.value = true
         viewModelScope.launch {
-            tasksRepository.refreshTasks()
+            taskRepository.refresh()
             _isLoading.value = false
         }
     }
 
-    private fun filterTasks(
-        tasksResult: Result<List<Task>>,
-        filteringType: TasksFilterType
-    ): List<Task> = if (tasksResult is Success) {
-        filterItems(tasksResult.data, filteringType)
-    } else {
-        showSnackbarMessage(R.string.loading_tasks_error)
-        emptyList()
-    }
-
-    private fun filterItems(tasks: List<Task>, filteringType: TasksFilterType): List<Task> {
+    private fun filterTasks(tasks: List<Task>, filteringType: TasksFilterType): List<Task> {
         val tasksToShow = ArrayList<Task>()
         // We filter the tasks based on the requestType
         for (task in tasks) {

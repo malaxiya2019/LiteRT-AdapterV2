@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,20 +29,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Checkbox
-import androidx.compose.material.FloatingActionButton
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.ScaffoldState
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SmallFloatingActionButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,17 +53,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.android.architecture.blueprints.todoapp.R
+import com.example.android.architecture.blueprints.todoapp.TodoTheme
 import com.example.android.architecture.blueprints.todoapp.data.Task
 import com.example.android.architecture.blueprints.todoapp.tasks.TasksFilterType.ACTIVE_TASKS
 import com.example.android.architecture.blueprints.todoapp.tasks.TasksFilterType.ALL_TASKS
 import com.example.android.architecture.blueprints.todoapp.tasks.TasksFilterType.COMPLETED_TASKS
 import com.example.android.architecture.blueprints.todoapp.util.LoadingContent
 import com.example.android.architecture.blueprints.todoapp.util.TasksTopAppBar
-import com.example.android.architecture.blueprints.todoapp.util.collectAsStateWithLifecycle
-import com.example.android.architecture.blueprints.todoapp.util.getViewModelFactory
-import com.google.accompanist.appcompattheme.AppCompatTheme
 
 @Composable
 fun TasksScreen(
@@ -72,11 +72,12 @@ fun TasksScreen(
     onUserMessageDisplayed: () -> Unit,
     openDrawer: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: TasksViewModel = viewModel(factory = getViewModelFactory()),
-    scaffoldState: ScaffoldState = rememberScaffoldState()
+    viewModel: TasksViewModel = hiltViewModel(),
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
     Scaffold(
-        scaffoldState = scaffoldState,
+        modifier = modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TasksTopAppBar(
                 openDrawer = openDrawer,
@@ -87,9 +88,8 @@ fun TasksScreen(
                 onRefresh = { viewModel.refresh() }
             )
         },
-        modifier = modifier.fillMaxSize(),
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddTask) {
+            SmallFloatingActionButton(onClick = onAddTask) {
                 Icon(Icons.Filled.Add, stringResource(id = R.string.add_task))
             }
         }
@@ -111,8 +111,8 @@ fun TasksScreen(
         // Check for user messages to display on the screen
         uiState.userMessage?.let { message ->
             val snackbarText = stringResource(message)
-            LaunchedEffect(scaffoldState, viewModel, message, snackbarText) {
-                scaffoldState.snackbarHostState.showSnackbar(snackbarText)
+            LaunchedEffect(snackbarHostState, viewModel, message, snackbarText) {
+                snackbarHostState.showSnackbar(snackbarText)
                 viewModel.snackbarMessageShown()
             }
         }
@@ -157,7 +157,7 @@ private fun TasksContent(
                     horizontal = dimensionResource(id = R.dimen.list_item_padding),
                     vertical = dimensionResource(id = R.dimen.vertical_margin)
                 ),
-                style = MaterialTheme.typography.h6
+                style = MaterialTheme.typography.headlineSmall
             )
             LazyColumn {
                 items(tasks) { task ->
@@ -194,7 +194,7 @@ private fun TaskItem(
         )
         Text(
             text = task.titleForList,
-            style = MaterialTheme.typography.h6,
+            style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.padding(
                 start = dimensionResource(id = R.dimen.horizontal_margin)
             ),
@@ -230,16 +230,41 @@ private fun TasksEmptyContent(
 @Preview
 @Composable
 private fun TasksContentPreview() {
-    AppCompatTheme {
+    MaterialTheme {
         Surface {
             TasksContent(
                 loading = false,
                 tasks = listOf(
-                    Task("Title 1", "Description 1"),
-                    Task("Title 2", "Description 2", true),
-                    Task("Title 3", "Description 3", true),
-                    Task("Title 4", "Description 4"),
-                    Task("Title 5", "Description 5", true)
+                    Task(
+                        title = "Title 1",
+                        description = "Description 1",
+                        isCompleted = false,
+                        id = "ID 1"
+                    ),
+                    Task(
+                        title = "Title 2",
+                        description = "Description 2",
+                        isCompleted = true,
+                        id = "ID 2"
+                    ),
+                    Task(
+                        title = "Title 3",
+                        description = "Description 3",
+                        isCompleted = true,
+                        id = "ID 3"
+                    ),
+                    Task(
+                        title = "Title 4",
+                        description = "Description 4",
+                        isCompleted = false,
+                        id = "ID 4"
+                    ),
+                    Task(
+                        title = "Title 5",
+                        description = "Description 5",
+                        isCompleted = true,
+                        id = "ID 5"
+                    ),
                 ),
                 currentFilteringLabel = R.string.label_all,
                 noTasksLabel = R.string.no_tasks_all,
@@ -255,7 +280,7 @@ private fun TasksContentPreview() {
 @Preview
 @Composable
 private fun TasksContentEmptyPreview() {
-    AppCompatTheme {
+    MaterialTheme {
         Surface {
             TasksContent(
                 loading = false,
@@ -274,7 +299,7 @@ private fun TasksContentEmptyPreview() {
 @Preview
 @Composable
 private fun TasksEmptyContentPreview() {
-    AppCompatTheme {
+    TodoTheme {
         Surface {
             TasksEmptyContent(
                 noTasksLabel = R.string.no_tasks_all,
@@ -287,10 +312,14 @@ private fun TasksEmptyContentPreview() {
 @Preview
 @Composable
 private fun TaskItemPreview() {
-    AppCompatTheme {
+    MaterialTheme {
         Surface {
             TaskItem(
-                task = Task("Title", "Description"),
+                task = Task(
+                    title = "Title",
+                    description = "Description",
+                    id = "ID"
+                ),
                 onTaskClick = { },
                 onCheckedChange = { }
             )
@@ -301,10 +330,15 @@ private fun TaskItemPreview() {
 @Preview
 @Composable
 private fun TaskItemCompletedPreview() {
-    AppCompatTheme {
+    MaterialTheme {
         Surface {
             TaskItem(
-                task = Task("Title", "Description", true),
+                task = Task(
+                    title = "Title",
+                    description = "Description",
+                    isCompleted = true,
+                    id = "ID"
+                ),
                 onTaskClick = { },
                 onCheckedChange = { }
             )

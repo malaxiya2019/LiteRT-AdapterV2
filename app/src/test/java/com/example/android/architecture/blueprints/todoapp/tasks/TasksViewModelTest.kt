@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,8 +22,8 @@ import com.example.android.architecture.blueprints.todoapp.DELETE_RESULT_OK
 import com.example.android.architecture.blueprints.todoapp.EDIT_RESULT_OK
 import com.example.android.architecture.blueprints.todoapp.MainCoroutineRule
 import com.example.android.architecture.blueprints.todoapp.R
+import com.example.android.architecture.blueprints.todoapp.data.FakeTaskRepository
 import com.example.android.architecture.blueprints.todoapp.data.Task
-import com.example.android.architecture.blueprints.todoapp.data.source.FakeRepository
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -46,7 +46,7 @@ class TasksViewModelTest {
     private lateinit var tasksViewModel: TasksViewModel
 
     // Use a fake repository to be injected into the viewmodel
-    private lateinit var tasksRepository: FakeRepository
+    private lateinit var tasksRepository: FakeTaskRepository
 
     // Set the main coroutines dispatcher for unit testing.
     @ExperimentalCoroutinesApi
@@ -56,10 +56,10 @@ class TasksViewModelTest {
     @Before
     fun setupViewModel() {
         // We initialise the tasks to 3, with one active and two completed
-        tasksRepository = FakeRepository()
-        val task1 = Task("Title1", "Description1")
-        val task2 = Task("Title2", "Description2", true)
-        val task3 = Task("Title3", "Description3", true)
+        tasksRepository = FakeTaskRepository()
+        val task1 = Task(id = "1", title = "Title1", description = "Desc1")
+        val task2 = Task(id = "2", title = "Title2", description = "Desc2", isCompleted = true)
+        val task3 = Task(id = "3", title = "Title3", description = "Desc3", isCompleted = true)
         tasksRepository.addTasks(task1, task2, task3)
 
         tasksViewModel = TasksViewModel(tasksRepository, SavedStateHandle())
@@ -124,8 +124,8 @@ class TasksViewModelTest {
 
     @Test
     fun loadTasks_error() = runTest {
-        // Make the repository return errors
-        tasksRepository.setReturnError(true)
+        // Make the repository throw errors
+        tasksRepository.setShouldThrowError(true)
 
         // Load tasks
         tasksViewModel.refresh()
@@ -135,7 +135,8 @@ class TasksViewModelTest {
 
         // And the list of items is empty
         assertThat(tasksViewModel.uiState.first().items).isEmpty()
-        assertThat(tasksViewModel.uiState.first().userMessage).isEqualTo(R.string.loading_tasks_error)
+        assertThat(tasksViewModel.uiState.first().userMessage)
+            .isEqualTo(R.string.loading_tasks_error)
     }
 
     @Test
@@ -194,7 +195,7 @@ class TasksViewModelTest {
     @Test
     fun completeTask_dataAndSnackbarUpdated() = runTest {
         // With a repository that has an active task
-        val task = Task("Title", "Description")
+        val task = Task(id = "id", title = "Title", description = "Description")
         tasksRepository.addTasks(task)
 
         // Complete task
@@ -211,7 +212,7 @@ class TasksViewModelTest {
     @Test
     fun activateTask_dataAndSnackbarUpdated() = runTest {
         // With a repository that has a completed task
-        val task = Task("Title", "Description", true)
+        val task = Task(id = "id", title = "Title", description = "Description", isCompleted = true)
         tasksRepository.addTasks(task)
 
         // Activate task

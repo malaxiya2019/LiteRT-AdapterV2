@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.example.android.architecture.blueprints.todoapp.util
 
 import androidx.compose.foundation.Image
@@ -26,13 +27,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.DrawerState
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.ModalDrawer
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.DrawerState
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -46,7 +47,7 @@ import androidx.compose.ui.unit.dp
 import com.example.android.architecture.blueprints.todoapp.R
 import com.example.android.architecture.blueprints.todoapp.TodoDestinations
 import com.example.android.architecture.blueprints.todoapp.TodoNavigationActions
-import com.google.accompanist.appcompattheme.AppCompatTheme
+import com.example.android.architecture.blueprints.todoapp.TodoTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -58,7 +59,7 @@ fun AppModalDrawer(
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
     content: @Composable () -> Unit
 ) {
-    ModalDrawer(
+    ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             AppDrawer(
@@ -81,26 +82,28 @@ private fun AppDrawer(
     closeDrawer: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier.fillMaxSize()) {
-        DrawerHeader()
-        DrawerButton(
-            painter = painterResource(id = R.drawable.ic_list),
-            label = stringResource(id = R.string.list_title),
-            isSelected = currentRoute == TodoDestinations.TASKS_ROUTE,
-            action = {
-                navigateToTasks()
-                closeDrawer()
-            }
-        )
-        DrawerButton(
-            painter = painterResource(id = R.drawable.ic_statistics),
-            label = stringResource(id = R.string.statistics_title),
-            isSelected = currentRoute == TodoDestinations.STATISTICS_ROUTE,
-            action = {
-                navigateToStatistics()
-                closeDrawer()
-            }
-        )
+    Surface(color = MaterialTheme.colorScheme.background) {
+        Column(modifier = modifier.fillMaxSize()) {
+            DrawerHeader()
+            DrawerButton(
+                painter = painterResource(id = R.drawable.ic_list),
+                label = stringResource(id = R.string.list_title),
+                isSelected = currentRoute == TodoDestinations.TASKS_ROUTE,
+                action = {
+                    navigateToTasks()
+                    closeDrawer()
+                }
+            )
+            DrawerButton(
+                painter = painterResource(id = R.drawable.ic_statistics),
+                label = stringResource(id = R.string.statistics_title),
+                isSelected = currentRoute == TodoDestinations.STATISTICS_ROUTE,
+                action = {
+                    navigateToStatistics()
+                    closeDrawer()
+                }
+            )
+        }
     }
 }
 
@@ -125,7 +128,7 @@ private fun DrawerHeader(
         )
         Text(
             text = stringResource(id = R.string.navigation_view_header_title),
-            color = MaterialTheme.colors.surface
+            color = MaterialTheme.colorScheme.surface
         )
     }
 }
@@ -139,9 +142,9 @@ private fun DrawerButton(
     modifier: Modifier = Modifier
 ) {
     val tintColor = if (isSelected) {
-        MaterialTheme.colors.secondary
+        MaterialTheme.colorScheme.secondary
     } else {
-        MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
+        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
     }
 
     TextButton(
@@ -163,7 +166,7 @@ private fun DrawerButton(
             Spacer(Modifier.width(16.dp))
             Text(
                 text = label,
-                style = MaterialTheme.typography.body2,
+                style = MaterialTheme.typography.bodySmall,
                 color = tintColor
             )
         }
@@ -173,7 +176,7 @@ private fun DrawerButton(
 @Preview("Drawer contents")
 @Composable
 fun PreviewAppDrawer() {
-    AppCompatTheme {
+    TodoTheme {
         Surface {
             AppDrawer(
                 currentRoute = TodoDestinations.TASKS_ROUTE,

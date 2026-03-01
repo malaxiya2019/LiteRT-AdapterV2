@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,17 +18,18 @@ package com.example.android.architecture.blueprints.todoapp.statistics
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.android.architecture.blueprints.todoapp.data.Result
-import com.example.android.architecture.blueprints.todoapp.data.Result.Success
+import com.example.android.architecture.blueprints.todoapp.R
 import com.example.android.architecture.blueprints.todoapp.data.Task
-import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository
+import com.example.android.architecture.blueprints.todoapp.data.TaskRepository
 import com.example.android.architecture.blueprints.todoapp.util.Async
 import com.example.android.architecture.blueprints.todoapp.util.WhileUiSubscribed
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * UiState for the statistics screen.
@@ -43,14 +44,15 @@ data class StatisticsUiState(
 /**
  * ViewModel for the statistics screen.
  */
-class StatisticsViewModel(
-    private val tasksRepository: TasksRepository
+@HiltViewModel
+class StatisticsViewModel @Inject constructor(
+    private val taskRepository: TaskRepository
 ) : ViewModel() {
 
     val uiState: StateFlow<StatisticsUiState> =
-        tasksRepository.getTasksStream()
+        taskRepository.getTasksStream()
             .map { Async.Success(it) }
-            .onStart<Async<Result<List<Task>>>> { emit(Async.Loading) }
+            .catch<Async<List<Task>>> { emit(Async.Error(R.string.loading_tasks_error)) }
             .map { taskAsync -> produceStatisticsUiState(taskAsync) }
             .stateIn(
                 scope = viewModelScope,
@@ -60,28 +62,27 @@ class StatisticsViewModel(
 
     fun refresh() {
         viewModelScope.launch {
-            tasksRepository.refreshTasks()
+            taskRepository.refresh()
         }
     }
 
-    private fun produceStatisticsUiState(taskLoad: Async<Result<List<Task>>>) =
+    private fun produceStatisticsUiState(taskLoad: Async<List<Task>>) =
         when (taskLoad) {
             Async.Loading -> {
                 StatisticsUiState(isLoading = true, isEmpty = true)
             }
+            is Async.Error -> {
+                // TODO: Show error message?
+                StatisticsUiState(isEmpty = true, isLoading = false)
+            }
             is Async.Success -> {
-                when (val result = taskLoad.data) {
-                    is Success -> {
-                        val stats = getActiveAndCompletedStats(result.data)
-                        StatisticsUiState(
-                            isEmpty = result.data.isEmpty(),
-                            activeTasksPercent = stats.activeTasksPercent,
-                            completedTasksPercent = stats.completedTasksPercent,
-                            isLoading = false
-                        )
-                    }
-                    else -> StatisticsUiState(isLoading = false)
-                }
+                val stats = getActiveAndCompletedStats(taskLoad.data)
+                StatisticsUiState(
+                    isEmpty = taskLoad.data.isEmpty(),
+                    activeTasksPercent = stats.activeTasksPercent,
+                    completedTasksPercent = stats.completedTasksPercent,
+                    isLoading = false
+                )
             }
         }
 }

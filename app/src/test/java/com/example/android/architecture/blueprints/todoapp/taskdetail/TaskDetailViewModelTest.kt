@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.example.android.architecture.blueprints.todoapp.taskdetail
 
 import androidx.lifecycle.SavedStateHandle
 import com.example.android.architecture.blueprints.todoapp.MainCoroutineRule
 import com.example.android.architecture.blueprints.todoapp.R
 import com.example.android.architecture.blueprints.todoapp.TodoDestinationsArgs
-import com.example.android.architecture.blueprints.todoapp.data.Result.Success
+import com.example.android.architecture.blueprints.todoapp.data.FakeTaskRepository
 import com.example.android.architecture.blueprints.todoapp.data.Task
-import com.example.android.architecture.blueprints.todoapp.data.source.FakeRepository
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -51,12 +51,12 @@ class TaskDetailViewModelTest {
     private lateinit var taskDetailViewModel: TaskDetailViewModel
 
     // Use a fake repository to be injected into the viewmodel
-    private lateinit var tasksRepository: FakeRepository
+    private lateinit var tasksRepository: FakeTaskRepository
     private val task = Task(title = "Title1", description = "Description1", id = "0")
 
     @Before
     fun setupViewModel() {
-        tasksRepository = FakeRepository()
+        tasksRepository = FakeTaskRepository()
         tasksRepository.addTasks(task)
 
         taskDetailViewModel = TaskDetailViewModel(
@@ -90,7 +90,8 @@ class TaskDetailViewModelTest {
 
     @Test
     fun activateTask() = runTest {
-        task.isCompleted = true
+        tasksRepository.deleteAllTasks()
+        tasksRepository.addTasks(task.copy(isCompleted = true))
 
         // Verify that the task was completed initially
         assertThat(tasksRepository.savedTasks.value[task.id]?.isCompleted).isTrue()
@@ -100,18 +101,35 @@ class TaskDetailViewModelTest {
         taskDetailViewModel.setCompleted(false)
 
         // Then the task is not completed and the snackbar shows the correct message
-        val newTask = (tasksRepository.getTask(task.id) as Success).data
-        assertTrue(newTask.isActive)
+        val newTask = tasksRepository.getTask(task.id)
+        assertTrue((newTask?.isActive) ?: false)
         assertThat(taskDetailViewModel.uiState.first().userMessage)
             .isEqualTo(R.string.task_marked_active)
     }
 
     @Test
     fun taskDetailViewModel_repositoryError() = runTest {
-        // Given a repository that returns errors
-        tasksRepository.setReturnError(true)
+        // Given a repository that throws errors
+        tasksRepository.setShouldThrowError(true)
 
+        // Then the task is null and the snackbar shows a loading error message
         assertThat(taskDetailViewModel.uiState.value.task).isNull()
+        assertThat(taskDetailViewModel.uiState.first().userMessage)
+            .isEqualTo(R.string.loading_task_error)
+    }
+
+    @Test
+    fun taskDetailViewModel_taskNotFound() = runTest {
+        // Given an ID for a non existent task
+        taskDetailViewModel = TaskDetailViewModel(
+            tasksRepository,
+            SavedStateHandle(mapOf(TodoDestinationsArgs.TASK_ID_ARG to "nonexistent_id"))
+        )
+
+        // The task is null and the snackbar shows a "not found" error message
+        assertThat(taskDetailViewModel.uiState.value.task).isNull()
+        assertThat(taskDetailViewModel.uiState.first().userMessage)
+            .isEqualTo(R.string.task_not_found)
     }
 
     @Test
