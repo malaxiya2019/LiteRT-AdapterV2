@@ -102,7 +102,7 @@ class TasksViewModel @Inject constructor(
 
     init {
         // Read userMessageArgs from saveStateHandle
-        savedStateHandle.get<Int>(USER_MESSAGE_ARG)?.let { result ->
+        savedStateHandle.get<Int>(USER_MESSAGE_ARG)?.takeIf { it != 0 }?.let { result ->
             showEditResultMessage(result)
             savedStateHandle[USER_MESSAGE_ARG] = 0
         }
