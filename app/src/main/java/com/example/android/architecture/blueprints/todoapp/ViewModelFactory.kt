@@ -15,38 +15,42 @@
  */
 package com.example.android.architecture.blueprints.todoapp
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.android.architecture.blueprints.todoapp.addedittask.AddEditTaskViewModel
 import com.example.android.architecture.blueprints.todoapp.statistics.StatisticsViewModel
 import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailViewModel
 import com.example.android.architecture.blueprints.todoapp.tasks.TasksViewModel
 
 /**
- * Factory for all ViewModels.
+ * Global factory for all ViewModels in the application.
+ *
+ * This factory utilizes [CreationExtras] to resolve required dependencies
+ * (such as TaskRepository and SavedStateHandle).
  */
-@Suppress("UNCHECKED_CAST")
-val TodoViewModelFactory = object : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T =
-        with(modelClass) {
-            val application = checkNotNull(extras[APPLICATION_KEY]) as TodoApplication
-            val tasksRepository = application.taskRepository
-            when {
-                isAssignableFrom(StatisticsViewModel::class.java) ->
-                    StatisticsViewModel(tasksRepository)
-                isAssignableFrom(TaskDetailViewModel::class.java) ->
-                    TaskDetailViewModel(tasksRepository)
-                isAssignableFrom(AddEditTaskViewModel::class.java) ->
-                    AddEditTaskViewModel(tasksRepository)
-                isAssignableFrom(TasksViewModel::class.java) -> {
-                    val handle = extras.createSavedStateHandle()
-                    TasksViewModel(tasksRepository, handle)
-                }
-                else ->
-                    throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
-            }
-        } as T
+val TodoViewModelFactory = viewModelFactory {
+    initializer<StatisticsViewModel> {
+        StatisticsViewModel(application.taskRepository)
+    }
+    initializer<TaskDetailViewModel> {
+        TaskDetailViewModel(application.taskRepository)
+    }
+    initializer<AddEditTaskViewModel> {
+        AddEditTaskViewModel(application.taskRepository)
+    }
+    initializer<TasksViewModel> {
+        TasksViewModel(application.taskRepository, createSavedStateHandle())
+    }
 }
+
+/**
+ * Extension property to extract the [TodoApplication] instance from [CreationExtras].
+ *
+ * @throws IllegalStateException if the application is missing or is the wrong type.
+ */
+private val CreationExtras.application: TodoApplication
+    get() = this[APPLICATION_KEY] as? TodoApplication
+        ?: error("'CreationExtras' must contain 'APPLICATION_KEY' to access 'TodoApplication'")
