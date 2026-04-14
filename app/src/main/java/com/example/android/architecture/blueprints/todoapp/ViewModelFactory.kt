@@ -53,4 +53,4 @@ val TodoViewModelFactory = viewModelFactory {
  */
 private val CreationExtras.application: TodoApplication
     get() = this[APPLICATION_KEY] as? TodoApplication
-        ?: error("'CreationExtras' must contain 'APPLICATION_KEY' to access 'TodoApplication'")
+        ?: error("`APPLICATION_KEY` in `CreationExtras` is missing or not a `TodoApplication`.")
